@@ -2,6 +2,8 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -76,8 +78,15 @@ namespace CollegeImport
                 });
             }
 
+
+            int diff = GetDayOfWeek(DateTime.Now) == 7 ? +1 : -GetDayOfWeek(DateTime.Now) + 1;
+
+            var startDate = DateTime.Now.AddDays(diff);
+            var endDate = startDate.AddDays(7);
+
             var tabsList = TimeTableAdapter.GetData()
-                           .Where(t => t.DAT >= new DateTime(2021, 10, 11) && t.DAT < new DateTime(2021, 10, 18))
+                           .Where(t => t.DAT >= new DateTime(startDate.Year, startDate.Month, startDate.Day) 
+                                && t.DAT < new DateTime(endDate.Year, endDate.Month, endDate.Day))
                            .GroupBy(x => new { x.IDG, x.IDA, x.IDD, x.UR, x.IDP }).ToList();
 
             var TimeTableList = new List<JTimeTable>();
@@ -137,7 +146,18 @@ namespace CollegeImport
                 string url = $"http://{addr}/api/jimport/load";
 
                 form.Add(new ByteArrayContent(byteArray, 0, byteArray.Length), "data", "data");
+
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Content = form;
                 HttpResponseMessage response = await httpClient.PostAsync(url, form);
+
+                using (var reader = new StreamReader(await response.Content.ReadAsStreamAsync()))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        Debug.WriteLine(reader.ReadLine());
+                    }
+                }
 
                 Dispatcher.Invoke(() => {
                     MessageBox.Show(this, "Загрузка завершена!", "Внимание!", MessageBoxButton.OK, MessageBoxImage.Information);

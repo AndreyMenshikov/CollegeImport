@@ -6,9 +6,13 @@
         xmlns:local="clr-namespace:CollegeImport"
         mc:Ignorable="d"
         Title="Импорт из mdb" 
-        Height="200" 
-        Width="400" ResizeMode="NoResize">
+        SizeToContent="Height"
+        Width="400"
+        ResizeMode="NoResize">
     <Grid>
-        <Button x:Name="Generate" Click="Generate_Click" Width="100" Height="50">Обработать</Button>        
+        <StackPanel Orientation="Vertical">
+            <TextBox x:Name="TextLog" Height="200" IsReadOnly="True"/>
+            <Button x:Name="Generate" Click="Generate_Click" Width="100" Height="50">Обработать</Button>
+        </StackPanel>
     </Grid>
 </Window>
