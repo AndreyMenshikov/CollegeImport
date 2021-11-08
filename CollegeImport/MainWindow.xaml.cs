@@ -99,8 +99,8 @@ namespace CollegeImport
                     var x = new JTimeTable()
                     {
                         ID = idx++,
-                        DateFrom = new DateTime(2021, 10, 1),
-                        DateTo = new DateTime(2021, 10, 1).AddDays(30),
+                        DateFrom = new DateTime(startDate.Year, startDate.Month, startDate.Day),
+                        DateTo = new DateTime(startDate.Year, startDate.Month, startDate.Day).AddDays(30),
                         ClassID = tab.Key.IDG,
                         ClassroomID = tab.Key.IDA,
                         SubjectID = tab.Key.IDD,
