@@ -44,5 +44,17 @@ namespace CollegeImport.Properties {
                 return ((string)(this["TimetableConnectionString"]));
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string MdbFilePath {
+            get {
+                return ((string)(this["MdbFilePath"]));
+            }
+            set {
+                this["MdbFilePath"] = value;
+            }
+        }
     }
 }

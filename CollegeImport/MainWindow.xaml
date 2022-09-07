@@ -10,9 +10,32 @@
         Width="400"
         ResizeMode="NoResize">
     <Grid>
-        <StackPanel Orientation="Vertical">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Margin="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Файл базы:" Grid.Column="0" Margin="3"/>
+            <TextBox x:Name="FileNameTextBox" Grid.Column="1" Text="c:\destination\path.mdb" Margin="3"/>
+            <Button Padding="3" Grid.Column="2" x:Name="SelectFile" Content="Выбрать файл" Margin="3"/>
+        </Grid>
+        <Grid Grid.Row="1" Margin="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Адрес сервера расписания:" Grid.Column="0" Margin="3"/>
+            <TextBox x:Name="ServerAddressTextBox" Grid.Column="1" Text="" Margin="3"/>
+        </Grid>
+        <StackPanel Orientation="Vertical" Grid.Row="2">
             <TextBox x:Name="TextLog" Height="200" IsReadOnly="True"/>
-            <Button x:Name="Generate" Click="Generate_Click" Width="100" Height="50">Обработать</Button>
+            <Button x:Name="Generate" Click="Generate_Click" Margin="5" Width="100">Обработать</Button>
         </StackPanel>
     </Grid>
 </Window>

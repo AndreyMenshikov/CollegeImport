@@ -1,7 +1,9 @@
 ﻿using CollegeImport.TimetableDataSetTableAdapters;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -29,16 +31,60 @@ namespace CollegeImport
         public MainWindow()
         {
             InitializeComponent();
+
+            SelectFile.Click += SelectFile_Click;
+
+            SourceInitialized += MainWindow_SourceInitialized;
+            Closing += MainWindow_Closing;
         }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            Properties.Settings.Default.Save();
+        }
+
+        private void MainWindow_SourceInitialized(object sender, EventArgs e)
+        {
+            FileNameTextBox.Text = Properties.Settings.Default.MdbFilePath;
+            ServerAddressTextBox.Text = Properties.Settings.Default.ServerAddress;
+        }
+
+        private void SelectFile_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "БД Access (*.mdb)|*.mdb|All files (*.*)|*.*";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                FileNameTextBox.Text = openFileDialog.FileName;
+
+                Properties.Settings.Default.MdbFilePath = openFileDialog.FileName;
+            }
+        }
+
         private void Generate_Click(object sender, RoutedEventArgs e)
         {
-            SendOverHTTP();
+            try
+            {
+                SendOverHTTP();
+            }
+            catch(Exception ex)
+            {
+                Dispatcher.Invoke(() => {
+                    MessageBox.Show(this, "Ошибка: " + ex.Message, "Внимание!", MessageBoxButton.OK, MessageBoxImage.Error);
+                });
+            }
             //new DBUpdater().Update();
         }
 
         private void SendOverHTTP()
         {
+            string connstr = $"Provider=Microsoft.Jet.OLEDB.4.0;Data Source={Properties.Settings.Default.MdbFilePath}";
+
+            Properties.Settings.Default.ServerAddress = ServerAddressTextBox.Text;
+
             SPGRUPTableAdapter GroupAdapter = new SPGRUPTableAdapter();
+            GroupAdapter.Connection.ConnectionString = connstr;
+
             var maxCourse = GroupAdapter.GetData().Max(x => x.KURS);
             List<JClassGroup> StreamList = new List<JClassGroup>();
             for (int i = 1; i <= maxCourse; i++)
@@ -48,6 +94,8 @@ namespace CollegeImport
             var GroupList = GroupAdapter.GetData().Select(x => new JClass() { ID = x.IDG, ClassGroupID = x.KURS, Name = x.NAIM }).ToList();
 
             SPPREPTableAdapter TeacherAdapter = new SPPREPTableAdapter();
+            TeacherAdapter.Connection.ConnectionString = connstr;
+
             var TeacherList = TeacherAdapter.GetData()
                 .Select(x => new JTeacher()
                 {
@@ -58,12 +106,17 @@ namespace CollegeImport
                 }).ToList();
 
             SPKAUDTableAdapter RoomAdapter = new SPKAUDTableAdapter();
+            RoomAdapter.Connection.ConnectionString = connstr;
+
             var RoomList = RoomAdapter.GetData().Select(x => new JClassRoom() { ID = x.IDA, Name = x.KAUDI }).ToList();
 
             SPPREDTableAdapter SubjectAdapter = new SPPREDTableAdapter();
+            SubjectAdapter.Connection.ConnectionString = connstr;
+
             var SubjectList = SubjectAdapter.GetData().Select(x => new JSubject() { ID = x.IDD, Name = x.NAIM }).ToList();
 
             UROKITableAdapter TimeTableAdapter = new UROKITableAdapter();
+            TimeTableAdapter.Connection.ConnectionString = connstr;
 
             List<JLessonTime> TimesList = new List<JLessonTime>();
             var maxLesson = TimeTableAdapter.GetData().Max(x => x.UR);
@@ -134,7 +187,6 @@ namespace CollegeImport
         {
             try
             {
-
                 HttpClient httpClient = new HttpClient();
                 MultipartFormDataContent form = new MultipartFormDataContent();
 
@@ -165,6 +217,9 @@ namespace CollegeImport
             }
             catch (Exception ex)
             {
+                Dispatcher.Invoke(() => {
+                    MessageBox.Show(this, "Ошибка при обработке данных: " + ex.Message, "Внимание!", MessageBoxButton.OK, MessageBoxImage.Error);
+                });
                 System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
             }
 
